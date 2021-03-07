@@ -1,0 +1,59 @@
+#This is Git's per-user configuration file.
+
+# Additional Links
+# <https://www.atlassian.com/de/git/tutorials/setting-up-a-repository/git-config>
+
+[user]
+    # Please adapt the following lines:
+    name = Jörg Kütemeier
+    email = joerg@kuetemeier.de
+
+[core]
+    filemode = true
+    # https://github.com/dandavison/delta#configuration
+    pager = delta
+
+[delta]
+    plus-color = "#012800"
+    minus-color = "#340001"
+    syntax-theme = Monokai Extended
+
+[interactive]
+    diffFilter = delta --color-only
+
+[alias]
+    a       = add
+    br      = branch
+    b       = branch
+    co      = checkout
+    c       = checkout
+    ci      = commit
+    cm      = commit
+    d       = diff
+    last    = log -1 HEAD
+    l       = !"git lg1"
+    lg      = !"git lg1"
+    ll      = log -p
+    lg1     = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+    lg2     = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    lg3     = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+    m       = merge --no-ff
+    s       = status
+    st      = status
+    unstage = reset HEAD --
+    un      = reset HEAD --
+
+[credential]
+    helper = libsecret
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+
+[pull]
+    rebase = true
+
+[init]
+    defaultBranch = main

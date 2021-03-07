@@ -1,0 +1,26 @@
+# Shell functions
+
+function psgrep () {
+    ps aux | grep "$1" | grep -v "grep"
+}
+
+function mkcd () {
+    mkdir -p "$1"
+    cd "$1"
+}
+
+GITBIN=/usr/bin/git
+test -f /usr/local/bin/git && GITBIN=/usr/local/bin
+
+function git() {
+    if [ $# == 0 ]; then
+        $GITBIN status
+    else
+        $GITBIN "$@"
+    fi
+}
+
+# Add localy defined functions - if exists
+if [ -f ~/.config/shell/local/functions ]; then
+    source ~/.config/shell/local/functions
+fi

@@ -91,3 +91,8 @@ $RECYCLE.BIN/
 
 # Coverage - your repo token should not be public
 .coveralls.yml
+
+zsh/.zcompdump
+zsh/.zinit
+zsh/.zsh_history
+local

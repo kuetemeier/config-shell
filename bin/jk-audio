@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+
+connect_audio_devices() {
+    echo "Connecting audio devices to jack2..."
+
+    #alsa_out -j OMEN_OUTput -d hw:CARD=PCH -r 48000 &
+    #alsa_in -j OMEN_INput -d hw:CARD=PCH -r 48000 &
+
+    alsa_in -j RodePro_INput -d hw:CARD=Pro,DEV=0 -c 2 -r 48000 &
+    alsa_out -j RodePro_OUTput -d hw:CARD=Pro,DEV=0 -c 2 -r 48000 &
+    alsa_in -j RodePro_Multi_INput -d hw:CARD=Pro,DEV=1 -c 14 -r 48000 &
+
+
+    #alsa_out -j MixerProFX_OUTput -d hw:CARD=CODEC_1 -r 48000 &
+    #alsa_in -j MixerProFX_INput -d hw:CARD=CODEC_1 -r 48000 &
+
+    #alsa_out -j Monitor_HDMI_OUTput -d hw:CARD=NVidia -r 48000 &
+
+}
+
+create_sinks_and_sources() {
+    echo "Creating sinks and sources..."
+    pactl load-module module-jack-sink client_name=Brave_A_OUTput channels=2 connect=yes
+    pactl load-module module-jack-sink client_name=Brave_B_OUTput channels=2 connect=yes
+    pactl load-module module-jack-source client_name=Brave_A_INput channels=2 connect=yes
+
+    # pactl load-module module-jack-sink client_name=Firefox_A_OUTput channels=2 connect=no
+    # pactl load-module module-jack-sink client_name=Firefox_B_OUTput channels=2 connect=no
+
+    pactl load-module module-jack-sink client_name=Discord_OUTput channels=2 connect=yes
+    pactl load-module module-jack-source client_name=Discord_INput channels=2 connect=yes
+
+    # pactl load-module module-jack-sink client_name=Room_A_OUTput channels=2 connect=no
+    # pactl load-module module-jack-source client_name=Room_A_INput channels=2 connect=no
+    # pactl load-module module-jack-sink client_name=Room_B_OUTput channels=2 connect=no
+    # pactl load-module module-jack-source client_name=Room_B_INput channels=2 connect=no
+
+    pactl load-module module-jack-sink client_name=Game_Sound_A_OUTput channels=2 connect=yes
+    # pactl load-module module-jack-source client_name=Game_Sound_A_INput channels=2 connect=no
+
+    # pactl load-module module-jack-sink client_name=Game_Sound_B_OUTput channels=2 connect=no
+    # pactl load-module module-jack-source client_name=Game_Sound_B_INput channels=2 connect=no
+
+    # pactl load-module module-jack-sink client_name=App_A_OUTput channels=2 connect=no
+    # pactl load-module module-jack-source client_name=App_A_INput channels=2 connect=no
+
+    # pactl load-module module-jack-sink client_name=App_B_OUTput channels=2 connect=no
+    # pactl load-module module-jack-source client_name=App_B_INput channels=2 connect=no
+
+    pactl load-module module-jack-sink client_name=Musik_Overlay_OUTput channels=2 connect=yes
+
+    # pactl load-module module-jack-sink client_name=Effects_Overlay_OUTput channels=2 connect=no
+
+    # pactl load-module module-jack-sink client_name=OBS_Monitor_OUTput channels=2 connect=no
+}
+
+start_pulseaudio() {
+    echo "Stopping jack2..."
+    jack_control stop
+
+    echo "Restarting pulseaudio with 'detect devices'..."
+    cp /etc/pulse/default.pa.detect /etc/pulse/default.pa
+    systemctl --user restart pulseaudio.service
+    systemctl --user restart pulseaudio.socket
+}
+
+start() {
+    kernel=$(uname -r)
+
+    echo "Starting audio system..."
+
+    echo "Stopping pulseaudio..."
+
+    systemctl --user stop pulseaudio.service
+    systemctl --user stop pulseaudio.socket
+
+    echo "Starting jack2..."
+    jack_control stop
+    jack_control ds alsa
+    jack_control dps device hw:PCH,0
+    jack_control dps capture hw:PCH,0
+    jack_control dps playback hw:PCH,0
+    jack_control dps inchannels 2
+    jack_control dps outchannels 2
+    jack_control dps rate 48000
+#    jack_control dps rate 44100
+    jack_control dps nperiods 2
+    case "$kernel" in
+        *-rt*)
+            jack_control dps period 256
+            ;;
+        *)
+            jack_control dps period 1024
+            ;;
+    esac
+
+    jack_control dps duplex true
+    jack_control dps midi-driver seq
+    jack_control start
+
+    sleep 10
+
+#    a2jmidid -e
+
+    echo "Starting pulseaudio..."
+    cp /etc/pulse/default.pa.no-detect /etc/pulse/default.pa
+    systemctl --user start pulseaudio.service
+    systemctl --user start pulseaudio.socket
+
+    sleep 10
+
+#    pactl load-module module-jack-sink channels=2
+#    pactl load-module module-jack-source channels=2
+    pacmd set-default-sink jack_out
+    pacmd set-default-source jack_in
+
+    connect_audio_devices
+    create_sinks_and_sources
+
+#    sleep 10
+#    a2j_control --ehw
+#    a2j_control --start
+#    sleep 10
+    qjackctl &
+
+}
+
+stop() {
+    echo "Stopping audio system..."
+
+    echo "Stopping pulseaudio..."
+    systemctl --user stop pulseaudio.socket
+    systemctl --user stop pulseaudio.service
+
+    echo "Stopping jack2..."
+    jack_control stop
+}
+
+#########################
+# The command line help #
+#########################
+display_help() {
+    echo "Usage: $0 [option...] {start|stop|restart}" >&2
+    echo
+    echo "   -r, --resolution           run with the given resolution WxH"
+    echo "   -d, --display              Set on which display to host on "
+    echo
+    # echo some stuff here for the -a or --add-options
+    exit 1
+}
+
+
+################################
+# Check if parameters options  #
+# are given on the commandline #
+################################
+while :
+do
+    case "$1" in
+      -r | --resolution)
+          if [ $# -ne 0 ]; then
+            resolution="$2"   # You may want to check validity of $2
+          fi
+          shift 2
+          ;;
+      -h | --help)
+          display_help  # Call your function
+          exit 0
+          ;;
+      -d | --display)
+          display="$2"
+           shift 2
+           ;;
+
+      -a | --add-options)
+          # do something here call function
+          # and write it in your help function display_help()
+           shift 2
+           ;;
+
+      --) # End of all options
+          shift
+          break
+          ;;
+      -*)
+          echo "Error: Unknown option: $1" >&2
+          ## or call function display_help
+          exit 1
+          ;;
+      *)  # No more options
+          break
+          ;;
+    esac
+done
+
+
+######################
+# Check if parameter #
+# is set too execute #
+######################
+case "$1" in
+  start)
+    start # calling function start()
+    ;;
+  "start-pulse")
+    start_pulseaudio
+    ;;
+  "start-pulseaudio")
+    start_pulseaudio
+    ;;
+  "start-jack")
+    start_jack
+    ;;
+  stop)
+    stop # calling function stop()
+    ;;
+  restart)
+    stop  # calling function stop()
+    start # calling function start()
+    ;;
+  *)
+#    echo "Usage: $0 {start|stop|restart}" >&2
+    display_help
+
+    exit 1
+    ;;
+esac
+
+
+
+# pactl load-module module-jack-sink client_name=pulse_sink_2 connect=yes
+# pactl load-module module-jack-source client_name=pulse_source_2 connect=no
+# without client_name option additional sinks/sources have number suffix 01, 02 etc
+# connect option (default is yes) using no stops connection to JACK system capture/playback
+# There is also a channels option (default 'channels=2')
+
+#pactl load-module module-jack-sink channels=2
+#pactl load-module module-jack-source channels=2
+# pacmd set-default-sink jack_out
+# pacmd set-default-source jack_in
+
+## look at `cat /proc/asound/cards` for a list of your hardware
+
+##alsa_out -j OMEN_OUTput -d hw:CARD=PCH -r 48000 &
+##alsa_in -j OMEN_INput -d hw:CARD=PCH -r 48000 &
+
+#alsa_in -j RodePro_INput -d hw:CARD=Pro,DEV=0 -c 2 -r 48000 &
+#alsa_out -j RodePro_OUTput -d hw:CARD=Pro,DEV=0 -c 2 -r 48000 &
+#alsa_in -j RodePro_Multi_INput -d hw:CARD=Pro,DEV=1 -c 14 -r 48000 &
+
+
+##alsa_out -j MixerProFX_OUTput -d hw:CARD=CODEC_1 -r 48000 &
+##alsa_in -j MixerProFX_INput -d hw:CARD=CODEC_1 -r 48000 &
+
+##alsa_out -j Monitor_HDMI_OUTput -d hw:CARD=NVidia -r 48000 &
+
+## pactl list | grep -B 1 "Name: module-jack-sink" | grep Modul
+##
+
+#sleep 5
+
+#jack_connect PulseAudio\ JACK\ Sink:front-left "RodePro_OUTput":playback_1
+#jack_connect PulseAudio\ JACK\ Sink:front-right "RodePro_OUTput":playback_2
+
+#jack_connect "RodePro_INput":capture_1 PulseAudio\ JACK\ Source:front-left
+#jack_connect "RodePro_INput":capture_2 PulseAudio\ JACK\ Source:front-right
+
+#jack_disconnect system:capture_1 PulseAudio\ JACK\ Source:front-left
+#jack_disconnect system:capture_2 PulseAudio\ JACK\ Source:front-right
+
+
+### Default Config
+
+#jack_connect Brave_A_OUTput:front-left "RodePro_OUTput":playback_1
+#jack_connect Brave_A_OUTput:front-right "RodePro_OUTput":playback_2

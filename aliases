@@ -1,0 +1,49 @@
+# Setup Shell Aliases
+
+alias cp='cp -aiv'
+alias grep='grep --color=always'
+
+alias tgz='tar -pczf'
+
+alias ls='ls -vph --color=auto --group-directories-first --time-style="+%F, %T  "'
+alias l='ls -la'
+
+alias v="$EDITOR"
+alias vi="$EDITOR"
+alias vim="$EDITOR"
+
+alias va="$EDITOR ~/.config/shell/aliases"
+alias vb="$EDITOR ~/.config/"
+alias vbrc="$EDITOR ~/.config/.bashrc"
+alias ve="$EDITOR ~/.config/shell/exports"
+alias vs="$EDITOR ~/.config/shell/"
+alias vt="$EDITOR ~/.config/tmux/tmux.conf"
+alias vz="$EDITOR ~/.config/shell/zsh/"
+alias vzrc="$EDITOR ~/.config/shell/zsh/.zshrc"
+
+# fuzzy-search throug all available packages, with package info shown in a preview window,
+# and then install selected packages (source <https://wiki.archlinux.org/index.php/Fzf>)
+# TODO: automate this
+# make sure you run pacman -Fy at least once before invocation to sync the pacman file database)
+alias pacfzf="/usr/bin/pacman -Slq | /usr/bin/fzf --multi --preview 'cat <(pacman -Si {1}) <(/usr/bin/pacman -Fl {1} | awk \"{print \$2}\")' | xargs -ro sudo pacman -S"
+
+# List all your installed packages, and then remove selected pacakges
+alias pacfzf-remove="/usr/bin/pacman -Qq | /usr/bin/fzf --multi --preview 'pacman -Qi {1}' | xargs -ro sudo /usr/bin/pacman -Rns"
+
+alias commit='/usr/bin/git add -A; git commit -m'
+#TODO: alias fetch='clear && neofetch && fortune'
+alias fetch='/usr/bin/clear && /usr/bin/neofetch'
+alias m='/usr/bin/neomutt'
+alias pac='/usr/bin/sudo /usr/bin/pacman'
+alias rec='/usr/bin/gpg --recv-keys --keyserver hkp://pgp.mit.edu'
+alias reset='cd ~; /usr/bin/clear; source ~/.config/shell/zsh/.zshrc'
+
+# NO ROOT - only run this if we are not 'root' (safety first)
+if [ "$(/usr/bin/id -u)" -ne 0 ]; then
+    # none yet
+fi
+
+# Add localy defined aliases - if exists
+if [ -f ~/.config/shell/local/aliases ]; then
+    source ~/.config/shell/local/aliases
+fi

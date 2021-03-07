@@ -1,4 +1,4 @@
-# Common project template v1.2.0
+# My *live* Shell configuration
 
 *This is my project template repository, I use it as a common starting point for
 new projects.*

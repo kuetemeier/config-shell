@@ -1,0 +1,5 @@
+#!/bin/env bash
+
+echo "Using 'cryptroot-unlock' to unlock encrypted remote drives at $1"
+
+ssh -4 -o "HostKeyAlgorithms=ssh-rsa" -p 2022 -t root@$1 cryptroot-unlock
