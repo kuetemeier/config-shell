@@ -57,7 +57,7 @@ them to your new project repository.
    one from [choosealicense.com](http://choosealicense.com/).  We reccomend you
    to choose the Apache 2.0 license, but that's a decision you have to make.
 2. **Put your licenses into the LICENSE files** There are two files in this
-   template: `LICENSE` and `/doc/LICENSE`
+   template: `LICENSE` and `/docs/LICENSE`
 3. **Edit the README.md and CONTRIBUTION.md files** Edit the `README.md` file to
    reflect your new project name, description and license. Replace all
    occurrences of `kuetemeier`, `Kuetemeier.NET`, and `project-template` in both
@@ -116,7 +116,7 @@ specific language governing permissions and limitations under the License.
 
 ### Documentations under CC-BY
 
-Documentations in the `doc` folder released under Creative Commons - [CC-BY
+Documentations in the `docs` folder released under Creative Commons - [CC-BY
 4.0][]
 
 ### External libraries and software
