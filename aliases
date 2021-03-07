@@ -36,7 +36,7 @@ alias fetch='/usr/bin/clear && /usr/bin/neofetch'
 alias m='/usr/bin/neomutt'
 alias pac='/usr/bin/sudo /usr/bin/pacman'
 alias rec='/usr/bin/gpg --recv-keys --keyserver hkp://pgp.mit.edu'
-alias reset='cd ~; /usr/bin/clear; source ~/.config/shell/zsh/.zshrc'
+alias reset='cd ~; /usr/bin/clear; source ~/.config/shell/zsh/.zprofile; source ~/.config/shell/zsh/.zshrc'
 
 # NO ROOT - only run this if we are not 'root' (safety first)
 if [ "$(/usr/bin/id -u)" -ne 0 ]; then
