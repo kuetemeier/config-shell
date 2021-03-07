@@ -39,6 +39,7 @@
     lg3     = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
     m       = merge --no-ff
     s       = status
+    sr      = subrepo
     st      = status
     unstage = reset HEAD --
     un      = reset HEAD --
